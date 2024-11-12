@@ -4,7 +4,11 @@ export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
 
   theme: {
-    extend: {}
+    extend: {
+      textColor: {
+              DEFAULT: '#ffffff', // Set the default text color to white
+            },
+    }
   },
 
   plugins: []

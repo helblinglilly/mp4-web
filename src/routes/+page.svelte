@@ -1,4 +1,8 @@
 <script lang="ts">
-</script>
+    import FileUpload from "$lib/FileUpload.svelte";
 
-<h1 class="text-2xl font-bold">tbd</h1>
+    </script>
+
+<div class="h-[300px]">
+<FileUpload />
+</div>

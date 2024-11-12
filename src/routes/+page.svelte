@@ -1,5 +1,4 @@
 <script lang="ts">
 </script>
 
-<h1>Video Converter</h1>
-<input type="file" accept="video/*" />
+<h1 class="text-2xl font-bold">tbd</h1>

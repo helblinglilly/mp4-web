@@ -1,7 +1,7 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { get, writable } from "svelte/store";
 
-const ffmpegStore = writable<FFmpeg | undefined>(undefined);
+export const ffmpegStore = writable<FFmpeg | undefined>(undefined);
 
 const ffmpegLoadingState = writable<'uninitialised' | 'loading' | 'ready'>('uninitialised');
 

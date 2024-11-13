@@ -3,9 +3,10 @@
 	let { children } = $props();
 </script>
 
-<div class="text-center pt-2">
+<div class="text-center pt-2 pb-4">
     <h1 class="text-3xl font-semibold">mp4</h1>
 </div>
 
-
-{@render children()}
+<div class="px-4 md:px-8 grid gap-4">
+    {@render children()}
+</div>

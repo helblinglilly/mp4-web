@@ -1,64 +1,113 @@
 <script lang="ts">
-  let files = []; // Store the selected files
-  let isDragOver = false; // Track drag-over state
+  import { onMount } from "svelte";
+
+  let files: File[] = $state([]);
+  let isDragOver = $state(false);
+  let isMobile = $state(false);
+  const { fileselect, supportedMIMETypes }:
+    { fileselect: (file: File) => unknown,
+      supportedMIMETypes: string[]
+    } =
+    $props();
+
+  onMount(() => {
+    if (navigator.maxTouchPoints > 0){
+      isMobile = true;
+    }
+  })
+
+  let rejectedMessages: string[] = $state([]);
 
   let fileInput: HTMLInputElement;
 
-  // Handle files when dropped or selected via file input
-  function handleFiles(selectedFiles) {
-    files = Array.from(selectedFiles);
-    alert(`${files.length} file(s) selected.`);
+  function handleFiles(selectedFiles: FileList) {
+    rejectedMessages = [];
+
+    const allFiles = Array.from(selectedFiles);
+    const acceptedFiles = allFiles.filter((file) => supportedMIMETypes.includes(file.type));
+    const rejectedFiles = allFiles.filter((file) => !supportedMIMETypes.includes(file.type))
+
+    if (rejectedFiles.length > 0){
+      rejectedMessages.push('Sorry, the following file is not supported:')
+      rejectedFiles.forEach((file) => rejectedMessages.push(file.name));
+      rejectedFiles.forEach((file) => console.log(file))
+    }
+
+    files = acceptedFiles;
+
+    if (files.length > 0){
+      fileselect(files[0]);
+    }
   }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="upload-area w-full h-full rounded-md flex items-center align-center justify-center border-dashed border-2 border-cyan-300 {isDragOver ? 'dragover' : ''}"
-  on:click={() => fileInput.click() }
-  on:dragover={(e) => {
+  class="upload-area rounded-md border-dashed border-2 border-violet-600 {isDragOver ? `bg-violet-300/20 cursor-${files.length > 0 ? 'not-allowed' : 'grabbing'}` : 'bg-violet-500/20'} {files.length > 0 ? 'bg-violet-800/20 cursor-not-allowed' : 'cursor-pointer'}"
+  onclick={() => fileInput.click() }
+  ondragover={(e) => {
     e.preventDefault();
     isDragOver = true;
   }}
-  on:dragleave={(e) => {
+  ondragleave={(e) => {
     e.preventDefault();
     isDragOver = false;
   }}
-  on:drop={(e) => {
+  ondrop={(e) => {
     e.preventDefault();
     isDragOver = false;
-    handleFiles(e.dataTransfer.files);
+    handleFiles(e.dataTransfer!.files);
   }}
 >
-  Drag & drop files here or click to upload
-  <input type="file"
-      class="hidden"
-      on:change={(e) => handleFiles(e.target.files)}
-      bind:this={fileInput}>
-      multiple
+    {#if isDragOver}
+        <i class="text-violet-100 text-xl">Let's go...</i>
+    {:else}
+        <div class="grid justify-center items-center h-full p-2">
+        {#if rejectedMessages.length > 0}
+            {#each rejectedMessages as message}
+                <p>{message}</p>
+            {/each}
+        {:else}
+            <p class="text-violet-100 text-xl">
+                {#if files.length > 0}
+                    Continue below
+                {:else}
+                {#if isMobile}
+                    Click to select a file
+                {:else}
+                    Drop a video file in here
+                {/if}
+                    {/if}
+            </p>
+        {/if}
+        </div>
+    {/if}
+
+    <input type="file"
+        accept={supportedMIMETypes.join(', ')}
+        class="hidden"
+        disabled={files.length > 0}
+        onchange={(e) => {
+        const target = e.target as HTMLInputElement;
+          if (target.files){
+              handleFiles(target.files)
+          }
+        }}
+        bind:this={fileInput}
+    />
 </div>
 
-{#if files.length > 0}
-  <p>{files.length} file(s) selected:</p>
-  <ul>
-    {#each files as file}
-      <li>{file.name}</li>
-    {/each}
-  </ul>
-{/if}
 
 
 <style>
   .upload-area {
-    /* border: 2px dashed #007bff; */
-    font-size: 16px;
-    color: #007bff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  /* Highlight when dragging files over the area */
-  .dragover {
-    background-color: #e3f2fd;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      align-content: center;
+      overflow: scroll;
   }
 </style>

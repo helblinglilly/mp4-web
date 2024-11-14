@@ -6,8 +6,8 @@ export default {
   theme: {
     extend: {
       textColor: {
-              DEFAULT: '#ffffff', // Set the default text color to white
-            },
+        DEFAULT: '#ffffff', // Set the default text color to white
+      },
     }
   },
 

@@ -44,7 +44,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="upload-area rounded-md border-dashed border-2 border-violet-600 {isDragOver ? `bg-violet-300/20 cursor-${files.length > 0 ? 'not-allowed' : 'grabbing'}` : 'bg-violet-500/20'} {files.length > 0 ? 'bg-violet-800/20 cursor-not-allowed' : 'cursor-pointer'}"
+  class="upload-area rounded-md border-dashed border-2 border-violet-600 {isDragOver ? `bg-violet-300/20 cursor-grabbing` : 'bg-violet-500/20'} cursor-pointer"
   onclick={() => fileInput.click() }
   ondragover={(e) => {
     e.preventDefault();
@@ -64,30 +64,27 @@
         <i class="text-violet-100 text-xl">Let's go...</i>
     {:else}
         <div class="grid justify-center items-center h-full p-2">
-        {#if rejectedMessages.length > 0}
-            {#each rejectedMessages as message}
-                <p>{message}</p>
-            {/each}
-        {:else}
-            <p class="text-violet-100 text-xl">
-                {#if files.length > 0}
-                    Continue below
-                {:else}
-                {#if isMobile}
-                    Click to select a file
-                {:else}
-                    Drop a video file in here
-                {/if}
+            {#if rejectedMessages.length > 0}
+                <div>
+                    {#each rejectedMessages as message}
+                        <p>{message}</p>
+                    {/each}
+                </div>
+            {:else}
+                <p class="text-violet-100 text-xl text-center">
+                    {#if isMobile}
+                        Click to select a file
+                    {:else}
+                        Drop a video file in here
                     {/if}
-            </p>
-        {/if}
+                </p>
+            {/if}
         </div>
     {/if}
 
     <input type="file"
         accept={supportedMIMETypes.join(', ')}
         class="hidden"
-        disabled={files.length > 0}
         onchange={(e) => {
         const target = e.target as HTMLInputElement;
           if (target.files){

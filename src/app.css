@@ -21,6 +21,7 @@ input[type="checkbox"] {
     align-items: center;
     margin-top: auto;
     margin-bottom: auto;
+    background-color: rgb(91 33 182 / 0.4);
 }
 
 label,
@@ -37,4 +38,8 @@ input[type="checkbox"]:checked::before {
     height: 100%;
     position: relative;
     bottom: 2px;
+}
+
+input[type="checkbox"]:checked {
+    background-color: rgb(91 33 182);
 }

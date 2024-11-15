@@ -40,7 +40,6 @@
     }
   }
 </script>
-
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
@@ -84,7 +83,7 @@
 
     <input type="file"
         accept={supportedMIMETypes.join(', ')}
-        class="hidden"
+        style="display: none;"
         onchange={(e) => {
         const target = e.target as HTMLInputElement;
           if (target.files){
@@ -105,6 +104,6 @@
       justify-content: center;
       align-items: center;
       align-content: center;
-      overflow: scroll;
+      overflow: hidden;
   }
 </style>

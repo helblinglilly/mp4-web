@@ -6,7 +6,7 @@
   import { FFmpeg } from "@ffmpeg/ffmpeg";
 
   let inputFile: File | undefined = $state(undefined);
-  let output: string | undefined = $state(undefined);
+  let output: { url?: string; size?: number } = $state({});
   let percentage: number | undefined = $state(undefined);
   let downloadButton: HTMLAnchorElement;
   let isTranscoding = $state(false);
@@ -26,15 +26,30 @@
     });
 
     try {
-      // `${options.mute ? '-an' : '-acodec aac'}` '-vcodec h264'
-      await ffmpeg.exec([`-i`, input.name, `${input.name}.mp4`]);
+      const ffmpegArgs = ["-i", input.name];
+      ffmpegArgs.concat(["-vcodec", "h264"]);
+
+      if (options.mute) {
+        ffmpegArgs.push("-an");
+      } else {
+        ffmpegArgs.concat(["-acodec", "aac"]);
+      }
+
+      ffmpegArgs.push(`${input.name}.mp4`);
+
+      await ffmpeg.exec(ffmpegArgs);
       const data = await ffmpeg.readFile(`${input.name}.mp4`);
 
       // @ts-expect-error buffer does exist
-      output = URL.createObjectURL(new Blob([data.buffer], { type: "video/mp4" }));
+      const file = new File([data.buffer], `${input.name}.mp4`, { type: "video/mp4" });
+      output = {
+        url: URL.createObjectURL(file),
+        size: file.size,
+      };
+
       isTranscoding = false;
       isButtonEnabled = true;
-      buttonText = "Download";
+      buttonText = `Download`;
     } catch {
       isButtonEnabled = false;
       buttonText = "Something went wrong";
@@ -62,6 +77,7 @@
 
       isButtonEnabled = true;
       buttonText = "Convert";
+      output = {};
     }}
   />
 </div>
@@ -78,7 +94,7 @@
 
 <div class="h-[20vh]">
   <div class="inline-flex mb-4 w-full justify-center">
-    <input type="checkbox" value={options.mute} id="mute" />
+    <input type="checkbox" bind:checked={options.mute} id="mute" />
     <label for="mute" class="text-lg">Remove audio</label>
   </div>
 
@@ -91,7 +107,7 @@
           return;
         }
 
-        if (output) {
+        if (output.url) {
           downloadButton.click();
         } else {
           convert(inputFile, $ffmpegStore);
@@ -100,8 +116,11 @@
       }}
     >
       {buttonText}
+      {#if output.size}
+        <i>({getFilesize(output.size)})</i>
+      {/if}
     </button>
-    <a href={output} download class="hidden" bind:this={downloadButton}>a</a>
+    <a href={output.url} download class="hidden" bind:this={downloadButton}>a</a>
   </div>
 
   <div class="pt-4 w-full flex justify-center">

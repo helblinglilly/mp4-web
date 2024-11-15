@@ -8,22 +8,39 @@
     let inputFile: File | undefined = $state(undefined);
     let output: string | undefined = $state(undefined);
     let percentage: number | undefined = $state(undefined);
+    let downloadButton: HTMLAnchorElement;
+    let isTranscoding = $state(false);
 
     let options: { mute: boolean } = $state({ mute: false })
 
+    let isButtonEnabled = $state(false);
+    let buttonText = $state('Select file to get started');
+
 
     export async function convert(input: File, ffmpeg: FFmpeg){
-      ffmpeg.on('progress', ({ progress, time} ) => {
+      isButtonEnabled = false;
+      buttonText = "Transcoding..."
+
+      const normalisedName = input.name.replaceAll(' ', '_');
+
+      await ffmpeg.writeFile(normalisedName, await fetchFile(input));
+      ffmpeg.on('progress', ({ progress} ) => {
         percentage = progress * 100;
       })
-      await ffmpeg.writeFile(input.name, await fetchFile(input));
-      await ffmpeg.exec(['-i', input.name, 'output.mp4']);
-      const data = await ffmpeg.readFile('output.mp4');
 
-      console.log('done', data);
+      try {
+        await ffmpeg.exec([`-i ${options.mute ? '-an' : ''}`, normalisedName, `${normalisedName}.mp4`]);
+        const data = await ffmpeg.readFile(`${normalisedName}.mp4`);
 
-
-      output = URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));
+        // @ts-expect-error buffer does exist
+        output = URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));
+        isTranscoding = false;
+        isButtonEnabled = true;
+        buttonText = "Download"
+      } catch {
+        isButtonEnabled = false;
+        buttonText = "Something went wrong"
+      }
     }
 </script>
 
@@ -31,8 +48,14 @@
     <FileUpload
         supportedMIMETypes={['video/mp4',  'video/mpeg', 'video/mov', 'video/x-matroska', 'video/quicktime', 'video/webm', 'video/x-m4v']}
         fileselect={(file) => {
+          isButtonEnabled = false;
+          buttonText = "Loading"
+
           inputFile = file;
           loadFFmpeg();
+
+          isButtonEnabled = true;
+          buttonText = "Convert"
         }}
     />
 </div>
@@ -55,29 +78,31 @@
 
     <div class="w-full flex">
         <button
-            class={`rounded-lg py-4 w-full md:w-[28rem] mx-auto ${inputFile === undefined || $ffmpegStore === undefined ? 'bg-violet-800/40' : 'bg-violet-800'}`}
-            disabled={inputFile === undefined || $ffmpegStore === undefined}
+            class={`rounded-lg py-4 w-full md:w-[28rem] mx-auto ${isButtonEnabled ? 'bg-violet-800' : 'bg-violet-800/40'}`}
+            disabled={!isButtonEnabled}
             onclick={() => {
-              if (inputFile === undefined || $ffmpegStore === undefined){
-                console.log('not ready yet');
+              if (!isButtonEnabled || !inputFile || !$ffmpegStore){
                 return;
               }
-              convert(inputFile, $ffmpegStore);
+
+              if (output){
+                downloadButton.click();
+              } else {
+                convert(inputFile, $ffmpegStore);
+                isTranscoding = true;
+              }
             }}
         >
-            {inputFile ? $ffmpegStore === undefined ? 'Loading' : 'Convert' : 'Select file to get started'}
+            { buttonText }
         </button>
-
+        <a href={output} download class="hidden" bind:this={downloadButton}>a</a>
     </div>
 
-    <div class="grid">
-        {#if percentage}
-            <progress max={100} value={percentage} >
-                {percentage.toString().slice(0, 5)}%
+    <div class="pt-4 w-full flex justify-center">
+        {#if isTranscoding}
+            <progress max={100} value={percentage ?? 0} class="w-full md:w-[28rem]" >
+                {(percentage ?? 0).toString().slice(0, 5)}%
             </progress>
-        {/if}
-        {#if output}
-            <a href={output}>Download</a>
         {/if}
     </div>
 </div>

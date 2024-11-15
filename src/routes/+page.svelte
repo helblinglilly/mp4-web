@@ -21,16 +21,15 @@
       isButtonEnabled = false;
       buttonText = "Transcoding..."
 
-      const normalisedName = input.name.replaceAll(' ', '_');
-
-      await ffmpeg.writeFile(normalisedName, await fetchFile(input));
+      await ffmpeg.writeFile(input.name, await fetchFile(input));
       ffmpeg.on('progress', ({ progress} ) => {
         percentage = progress * 100;
       })
 
       try {
-        await ffmpeg.exec([`-i ${options.mute ? '-an' : ''}`, normalisedName, `${normalisedName}.mp4`]);
-        const data = await ffmpeg.readFile(`${normalisedName}.mp4`);
+        // `${options.mute ? '-an' : '-acodec aac'}` '-vcodec h264'
+        await ffmpeg.exec([`-i`, input.name, `${input.name}.mp4`]);
+        const data = await ffmpeg.readFile(`${input.name}.mp4`);
 
         // @ts-expect-error buffer does exist
         output = URL.createObjectURL(new Blob([data.buffer], {type: 'video/mp4'}));

@@ -55,7 +55,7 @@ const readFromBlobOrFile = (blob: Blob | File): Promise<Uint8Array> =>
 export const fetchFile = async (
   file?: string | File | Blob
 ): Promise<Uint8Array> => {
-  let data: ArrayBuffer | number[];
+  let data: ArrayBuffer | number[] | Uint8Array;
 
   if (typeof file === "string") {
     /* From base64 format */
@@ -75,5 +75,5 @@ export const fetchFile = async (
     return new Uint8Array();
   }
 
-  return new Uint8Array(data);
+  return data instanceof Uint8Array ? data : new Uint8Array(data);
 };

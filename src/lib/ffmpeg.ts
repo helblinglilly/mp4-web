@@ -75,5 +75,5 @@ export const fetchFile = async (
     return new Uint8Array();
   }
 
-  return new Uint8Array(data);
+  return data instanceof Uint8Array ? data : new Uint8Array(data);
 };
